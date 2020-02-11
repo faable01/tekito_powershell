@@ -18,7 +18,7 @@ function create($y_num, $x_num) {
   $count = 1
 
   # ターンカウント
-  $turn = 1
+  $frm | Add-Member -NotePropertyName turn -NotePropertyValue 1
 
   $btn_list = New-Object System.Collections.ArrayList
 
@@ -41,45 +41,88 @@ function create($y_num, $x_num) {
       $btn.Width = $frm.ClientRectangle.Width / $x_num
       $btn | Add-Member -NotePropertyName index -NotePropertyValue ($count-1)
 
-      # クリックイベントハンドラの設定
+      # クリックイベントハンドラの設定 ※スクリプトブロック内は外部と別スコープ。外から内に持ってくることはできるが、内から外に影響を及ぼせるのはオブジェクトのプロパティだけ（という気がする）
       $btn.Add_Click({
         
         # $thisで自分自身（ボタン）を、$_でイベントを発生させた主体（マウスなど）を取得できる
-        Write-Host $this.index
+        Write-Host "$($frm.turn)ターン目_クリックしたインデックス：$($this.index)"
 
-        # 上：-$x_num
-        # 下：+$x_num
-        # 左：-1
-        # 右：+1
-        # 左上：-$x_num-1
-        # 左下：+$x_num-1
-        # 右上：-$x_num+1
-        # 右下：+$x_num+1
-
-        if ($turn % 2 -ne 0) {  # 先行
-          $your_color = [System.Drawing.Color]::SlateGray
+        if ($frm.turn % 2 -ne 0) {  # 先行
+          $my_color = [System.Drawing.Color]::SlateGray
+          $your_color = [System.Drawing.Color]::MintCream
         
         } else {  # 後攻
-          $your_color = [System.Drawing.Color]::MintCream
+          $my_color = [System.Drawing.Color]::MintCream
+          $your_color = [System.Drawing.Color]::SlateGray
         
         }
 
         if ($this.BackColor -eq [System.Drawing.Color]::teal) {  # 初期状態：敵の色を挟めたら塗れる
           
-          # 上のチェック
+          $scriptblock = { param($num)
+            $n_list = New-Object System.Collections.ArrayList
+            $n = $this.index + $num
+            while ($n -ge 0) {
+              $n_list.Add($n)
+              $n = $n + $num
+            }
+            if ($btn_list[$n_list[0]].BackColor -eq $your_color) {
+            
+              $done = $false
+              $l = New-Object System.Collections.ArrayList
+              $n_list.RemoveAt(0)
+              $n_list | % {
+                $l.Add($_)
+                if ((-not $done) -and $btn_list[$_].BackColor -eq $my_color) {
+                  $this.BackColor = $my_color
+                  $l | % {
+                    $btn_list[$_].BackColor = $my_color
+                  }
+                  $done = $true
+                }
+              }
+            }
+          }
+          
 
+          # 上：-$x_num
+          # 下：+$x_num
+          # 左：-1
+          # 右：+1
+          # 左上：-$x_num-1
+          # 左下：+$x_num-1
+          # 右上：-$x_num+1
+          # 右下：+$x_num+1
 
-          $this.BackColor = $your_color
-        
-        } elseif ($this.BackColor -eq [System.Drawing.Color]::MintCream) {
-          $this.BackColor = [System.Drawing.Color]::SlateGray
+          # 上方向のチェック
+          & $scriptblock (-$x_num)
 
-        } else {
-          $this.BackColor = [System.Drawing.Color]::SlateGray
+          ## 下方向のチェック
+          #& $scriptblock (+$x_num)
+          #
+          ## 左方向のチェック
+          #& $scriptblock (-1)
+          #
+          ## 右方向のチェック
+          #& $scriptblock (+1)
+          #
+          ## 左上方向のチェック
+          #& $scriptblock (-$x_num-1)
+          #
+          ## 左下方向のチェック
+          #& $scriptblock (+$x_num-1)
+          #
+          ## 右上方向のチェック
+          #& $scriptblock (-$x_num+1)
+          #
+          ## 右下方向のチェック
+          #& $scriptblock (+$x_num+1)
+
         }
 
         # ターン経過
-        $turn++
+        Write-Host "ターン経過($($frm.turn))"
+        $frm.turn++
       })
 
       $frm.Controls.Add($btn)
@@ -88,6 +131,11 @@ function create($y_num, $x_num) {
     
     }
   }
+
+  $btn_list[$x_num*$y_num/2-$x_num/2-1].BackColor = [System.Drawing.Color]::SlateGray
+  $btn_list[$x_num*$y_num/2-$x_num/2].BackColor = [System.Drawing.Color]::SlateGray
+  $btn_list[$x_num*$y_num/2+$x_num/2-1].BackColor = [System.Drawing.Color]::MintCream
+  $btn_list[$x_num*$y_num/2+$x_num/2].BackColor = [System.Drawing.Color]::MintCream
 
   # フォーム表示
   $frm.ShowDialog()
