@@ -62,7 +62,7 @@ function create($y_num, $x_num) {
           $scriptblock = { param($num)
             $n_list = New-Object System.Collections.ArrayList
             $n = $this.index + $num
-            while ($n -ge 0) {
+            while ($n -ge 0 -and $n -le $x_num*$y_num) {
               $n_list.Add($n)
               $n = $n + $num
             }
@@ -70,15 +70,20 @@ function create($y_num, $x_num) {
             
               $done = $false
               $l = New-Object System.Collections.ArrayList
-              $n_list.RemoveAt(0)
+              Write-Host $n_list
               $n_list | % {
                 $l.Add($_)
                 if ((-not $done) -and $btn_list[$_].BackColor -eq $my_color) {
                   $this.BackColor = $my_color
+
                   $l | % {
+
                     $btn_list[$_].BackColor = $my_color
                   }
                   $done = $true
+                  # ターン経過
+                  Write-Host "ターン経過($($frm.turn))"
+                  $frm.turn++
                 }
               }
             }
@@ -98,31 +103,27 @@ function create($y_num, $x_num) {
           & $scriptblock (-$x_num)
 
           ## 下方向のチェック
-          #& $scriptblock (+$x_num)
+          & $scriptblock (+$x_num)
           #
           ## 左方向のチェック
-          #& $scriptblock (-1)
+          & $scriptblock (-1)
           #
           ## 右方向のチェック
-          #& $scriptblock (+1)
+          & $scriptblock (+1)
           #
           ## 左上方向のチェック
-          #& $scriptblock (-$x_num-1)
+          & $scriptblock (-$x_num-1)
           #
           ## 左下方向のチェック
-          #& $scriptblock (+$x_num-1)
+          & $scriptblock (+$x_num-1)
           #
           ## 右上方向のチェック
-          #& $scriptblock (-$x_num+1)
+          & $scriptblock (-$x_num+1)
           #
           ## 右下方向のチェック
-          #& $scriptblock (+$x_num+1)
+          & $scriptblock (+$x_num+1)
 
         }
-
-        # ターン経過
-        Write-Host "ターン経過($($frm.turn))"
-        $frm.turn++
       })
 
       $frm.Controls.Add($btn)
