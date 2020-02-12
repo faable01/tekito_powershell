@@ -68,6 +68,9 @@ function create($y_num, $x_num) {
 
         if ($this.BackColor -eq [System.Drawing.Color]::teal) {  # 初期状態：敵の色を挟めたら塗れる
           
+          $this | Add-Member -Force -NotePropertyName done -NotePropertyValue $false
+          $self = $this
+
           $scriptblock = { param($num)
             $n_list = New-Object System.Collections.ArrayList
             $n = $this.index + $num
@@ -90,15 +93,7 @@ function create($y_num, $x_num) {
                     $btn_list[$_].BackColor = $my_color
                   }
                   $done = $true
-                  # ターン経過
-                  Write-Host "ターン経過($($frm.turn))"
-                  if ($your_color -eq [System.Drawing.Color]::MintCream) {
-                    Write-Host "次は白の番"
-                  
-                  } else {
-                    Write-Host "次は黒の番"
-                  }
-                  $frm.turn++
+                  $self.done = $true
                 }
               }
             }
@@ -138,6 +133,18 @@ function create($y_num, $x_num) {
           ## 右下方向のチェック
           & $scriptblock (+$x_num+1)
 
+          if ($self.done) {
+            # ターン経過
+            Write-Host "ターン経過($($frm.turn))"
+            if ($your_color -eq [System.Drawing.Color]::MintCream) {
+              Write-Host "次は白の番"
+            
+            } else {
+              Write-Host "次は黒の番"
+            }
+            $frm.turn++
+            $self.done = $null
+          }
         }
       })
 
