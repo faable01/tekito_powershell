@@ -41,11 +41,12 @@ function create($y_num, $x_num) {
       $btn.Width = $frm.ClientRectangle.Width / $x_num
       $btn | Add-Member -NotePropertyName index -NotePropertyValue ($count-1)
 
+      if ($_y -eq 1 -or $_y -eq $y_num -or $_x -eq 1 -or $_x -eq $x_num) {  # 壁には印（doesNotHaveNextプロパティ）をうつ
+        $btn | Add-Member -NotePropertyName doesNotHaveNext -NotePropertyValue $true
+      }
+
       # クリックイベントハンドラの設定 ※スクリプトブロック内は外部と別スコープ。外から内に持ってくることはできるが、内から外に影響を及ぼせるのはオブジェクトのプロパティだけ（という気がする）
       $btn.Add_Click({
-        
-        # $thisで自分自身（ボタン）を、$_でイベントを発生させた主体（マウスなど）を取得できる
-        Write-Host "$($frm.turn)ターン目_クリックしたインデックス：$($this.index)"
 
         if ($frm.turn % 2 -ne 0) {  # 先行
           $my_color = [System.Drawing.Color]::SlateGray
@@ -57,16 +58,24 @@ function create($y_num, $x_num) {
         
         }
 
+        # $thisで自分自身（ボタン）を、$_でイベントを発生させた主体（マウスなど）を取得できる
+        if ($my_color -eq [System.Drawing.Color]::SlateGray) {
+          Write-Host "$($frm.turn)ターン目_黒がクリックしたインデックス：$($this.index)"
+
+        } else {
+          Write-Host "$($frm.turn)ターン目_白がクリックしたインデックス：$($this.index)"
+        }
+
         if ($this.BackColor -eq [System.Drawing.Color]::teal) {  # 初期状態：敵の色を挟めたら塗れる
           
           $scriptblock = { param($num)
             $n_list = New-Object System.Collections.ArrayList
             $n = $this.index + $num
-            while ($n -ge 0 -and $n -le $x_num*$y_num) {
+            while ($n -ge 0 -and $n -le $x_num*$y_num -and -not $btn_list[$n].doesNotHaveNext) {
               $n_list.Add($n)
               $n = $n + $num
             }
-            if ($btn_list[$n_list[0]].BackColor -eq $your_color) {
+            if ($n_list.Length -gt 0 -and $btn_list[$n_list[0]].BackColor -eq $your_color) {
             
               $done = $false
               $l = New-Object System.Collections.ArrayList
@@ -83,6 +92,12 @@ function create($y_num, $x_num) {
                   $done = $true
                   # ターン経過
                   Write-Host "ターン経過($($frm.turn))"
+                  if ($your_color -eq [System.Drawing.Color]::MintCream) {
+                    Write-Host "次は白の番"
+                  
+                  } else {
+                    Write-Host "次は黒の番"
+                  }
                   $frm.turn++
                 }
               }
