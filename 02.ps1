@@ -20,6 +20,15 @@ function create($y_num, $x_num) {
   $frm.FormBorderStyle = [System.Windows.Forms.FormBorderStyle]::Fixed3D
   $frm.StartPosition = [System.Windows.Forms.FormStartPosition]::CenterScreen
 
+  # コンソール用のTextBoxオブジェクト作成（ログ出力に使いたいからここに宣言する）
+  $t = New-Object System.Windows.Forms.RichTextBox
+
+  $write = { param($msg) 
+    Write-Host $msg
+    $t.Focus()
+    $t.AppendText("`n$($msg)")
+  }
+
   # ボタン数カウント
   $count = 1
 
@@ -39,7 +48,7 @@ function create($y_num, $x_num) {
       $_x = $_
 
       $btn = New-Object System.Windows.Forms.Button
-      $btn.Text = "button$($count)"
+      #$btn.Text = "button$($count)"
       $btn.BackColor = [System.Drawing.Color]::teal
       $btn.Top = $frm.ClientRectangle.Height / $y_num * ($_y - 1)
       $btn.Left = $frm.ClientRectangle.Width / $x_num * ($_x - 1)
@@ -66,10 +75,10 @@ function create($y_num, $x_num) {
 
         # $thisで自分自身（ボタン）を、$_でイベントを発生させた主体（マウスなど）を取得できる
         if ($my_color -eq [System.Drawing.Color]::SlateGray) {
-          Write-Host "$($frm.turn)ターン目_黒がクリックしたインデックス：$($this.index)"
+          & $write "$($frm.turn)ターン目_黒がクリックしたインデックス：$($this.index)"
 
         } else {
-          Write-Host "$($frm.turn)ターン目_白がクリックしたインデックス：$($this.index)"
+          & $write "$($frm.turn)ターン目_白がクリックしたインデックス：$($this.index)"
         }
 
         if ($this.BackColor -eq [System.Drawing.Color]::teal) {  # 初期状態：敵の色を挟めたら塗れる
@@ -257,7 +266,6 @@ function create($y_num, $x_num) {
             
               $done = $false
               $l = New-Object System.Collections.ArrayList
-              Write-Host $n_list
               $doesContinue = $true
               $n_list | % {
 
@@ -318,12 +326,12 @@ function create($y_num, $x_num) {
 
           if ($self.done) {
             # ターン経過
-            Write-Host "ターン経過($($frm.turn))"
+            & $write "ターン経過($($frm.turn))"
             if ($your_color -eq [System.Drawing.Color]::MintCream) {
-              Write-Host "次は白の番"
+              & $write "次は白の番"
             
             } else {
-              Write-Host "次は黒の番"
+              & $write "次は黒の番"
             }
             $frm.turn++
             $self.done = $null
@@ -344,18 +352,16 @@ function create($y_num, $x_num) {
   $btn_list[$x_num*$y_num/2+$x_num/2].BackColor = [System.Drawing.Color]::MintCream
 
   # コンソール作成
-  $frm.ClientSize = [System.Drawing.Size]::new($x_size, $y_size/8*9)
-  $t = New-Object System.Windows.Forms.RichTextBox
+  $frm.ClientSize = [System.Drawing.Size]::new($x_size, $y_size/4*5)
   $t.Top = $y_size
   $t.Left = 0
-  $t.Height = $y_size/8
+  $t.Height = $y_size/4
   $t.Width = $x_size
-  $t.Text = "hoge"
   $t.Multiline = $true
   $t.BackColor = [System.Drawing.Color]::FromArgb(75, 75, 125)
   $t.ForeColor = [System.Drawing.Color]::White
   $t.Font = [System.Drawing.Font]::new("Arial", $y_size/8/8)
-  Write-Host $t.Font.Size
+  
   $frm.Controls.Add($t)
 
   # フォーム表示
