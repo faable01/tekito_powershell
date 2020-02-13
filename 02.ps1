@@ -7,10 +7,16 @@ function create($y_num, $x_num) {
 
   Add-Type -AssemblyName System.Windows.Forms
 
+  # クライアント領域の縦の長さ
+  $y_size = 800
+
+  # クライアント領域の横の長さ
+  $x_size = 800
+
   # フォーム設定
   $frm = New-Object System.Windows.Forms.Form
   $frm.Text = "powershell_gui_02"
-  $frm.ClientSize = [System.Drawing.Size]::new(800, 800)  # "ClientSize" doesn't mean "Window Size"
+  $frm.ClientSize = [System.Drawing.Size]::new($x_size, $y_size)  # "ClientSize" doesn't mean "Window Size"
   $frm.FormBorderStyle = [System.Windows.Forms.FormBorderStyle]::Fixed3D
   $frm.StartPosition = [System.Windows.Forms.FormStartPosition]::CenterScreen
 
@@ -336,6 +342,21 @@ function create($y_num, $x_num) {
   $btn_list[$x_num*$y_num/2-$x_num/2].BackColor = [System.Drawing.Color]::SlateGray
   $btn_list[$x_num*$y_num/2+$x_num/2-1].BackColor = [System.Drawing.Color]::MintCream
   $btn_list[$x_num*$y_num/2+$x_num/2].BackColor = [System.Drawing.Color]::MintCream
+
+  # コンソール作成
+  $frm.ClientSize = [System.Drawing.Size]::new($x_size, $y_size/8*9)
+  $t = New-Object System.Windows.Forms.RichTextBox
+  $t.Top = $y_size
+  $t.Left = 0
+  $t.Height = $y_size/8
+  $t.Width = $x_size
+  $t.Text = "hoge"
+  $t.Multiline = $true
+  $t.BackColor = [System.Drawing.Color]::FromArgb(75, 75, 125)
+  $t.ForeColor = [System.Drawing.Color]::White
+  $t.Font = [System.Drawing.Font]::new("Arial", $y_size/8/8)
+  Write-Host $t.Font.Size
+  $frm.Controls.Add($t)
 
   # フォーム表示
   $frm.ShowDialog()
