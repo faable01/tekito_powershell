@@ -84,6 +84,213 @@ function create($y_num, $x_num) {
         #  & $write "$($frm.turn)ターン目_白がクリックしたインデックス：$($this.index)"
         #}
 
+        # そのマスが色を塗れるかどうかを判定する
+        $canDraw = { param($self, $num)
+          
+
+          # そのマスが既に白か黒に塗られていたらfalse
+          if ($this.BackColor -ne [System.Drawing.Color]::teal) {
+            return $false
+          }
+
+
+          $n_list = New-Object System.Collections.ArrayList
+          $n = $this.index + $num
+
+          if ($this.doesNotHaveNext) {  # 自分自身が壁の場合
+          
+            if ($this.index -eq 0) {  # 左上角なら
+
+              if (1 -eq $num) {  # 右方向チェックなら
+
+                while ($n -le $x_num-1) {
+                  $n_list.Add($n)
+                  $n = $n + $num
+                }
+              
+              } elseif ($x_num -eq $num) {  # 下方向チェックなら
+              
+                while ($n -le $y_num*$x_num-$x_num) {
+                  $n_list.Add($n)
+                  $n = $n + $num
+                }
+
+              } else {  # その他方向なら（斜め）
+                while ($n -ge 0 -and $n -le $x_num*$y_num) {
+                  $n_list.Add($n)
+                
+                  if ($btn_list[$n].doesNotHaveNext) {
+                    break
+                
+                  } else {
+                    $n = $n + $num
+                  }
+                }
+              }
+            
+            } elseif ($this.index -eq $x_num-1) {  # 右上角なら
+            
+              if (-1 -eq $num) {  # 左方向チェックなら
+
+                while ($n -ge 0) {
+                  $n_list.Add($n)
+                  $n = $n + $num
+                }
+              
+              } elseif ($x_num -eq $num) {  # 下方向チェックなら
+              
+                while ($n -le $y_num*$x_num-1) {
+                  $n_list.Add($n)
+                  $n = $n + $num
+                }
+
+              } else {  # その他方向なら（斜め）
+                while ($n -ge 0 -and $n -le $x_num*$y_num) {
+                  $n_list.Add($n)
+                
+                  if ($btn_list[$n].doesNotHaveNext) {
+                    break
+                
+                  } else {
+                    $n = $n + $num
+                  }
+                }
+              }
+            
+            } elseif ($this.index -eq $y_num*$x_num-$x_num) {  # 左下角なら
+            
+              if (1 -eq $num) {  # 右方向チェックなら
+
+                while ($n -le $y_num*$x_num-1) {
+                  $n_list.Add($n)
+                  $n = $n + $num
+                }
+              
+              } elseif (-$x_num -eq $num) {  # 上方向チェックなら
+              
+                while ($n -ge 0) {
+                  $n_list.Add($n)
+                  $n = $n + $num
+                }
+
+              } else {  # その他方向なら（斜め）
+                while ($n -ge 0 -and $n -le $x_num*$y_num) {
+                  $n_list.Add($n)
+                
+                  if ($btn_list[$n].doesNotHaveNext) {
+                    break
+                
+                  } else {
+                    $n = $n + $num
+                  }
+                }
+              }
+            
+            } elseif ($this.index -eq $y_num*$x_num-1) {  # 右下角なら
+            
+              if (-1 -eq $num) {  # 左方向チェックなら
+
+                while ($n -ge $y_num*$x_num-$x_num) {
+                  $n_list.Add($n)
+                  $n = $n + $num
+                }
+              
+              } elseif (-$x_num -eq $num) {  # 上方向チェックなら
+              
+                while ($n -ge $x_num-1) {
+                  $n_list.Add($n)
+                  $n = $n + $num
+                }
+
+              } else {  # その他方向なら（斜め）
+                while ($n -ge 0 -and $n -le $x_num*$y_num) {
+                  $n_list.Add($n)
+                
+                  if ($btn_list[$n].doesNotHaveNext) {
+                    break
+                
+                  } else {
+                    $n = $n + $num
+                  }
+                }
+              }
+            
+            } elseif ($this.index -lt $x_num -and (1, -1) -contains $num) {  # 上の行で横方向チェックの場合（四隅を除く）
+
+              while ($n -ge 0 -and $n -le $x_num-1) {
+                $n_list.Add($n)
+                $n = $n + $num
+              }
+            
+            } elseif ($this.index -ge $y_num*$x_num-$x_num -and (1, -1) -contains $num) {  # 下の行で横方向チェックの場合（四隅を除く）
+
+              while ($n -ge $y_num*$x_num-$x_num -and $n -le $y_num*$x_num-1) {
+                $n_list.Add($n)
+                $n = $n + $num
+              }
+            
+            } elseif ($this.index % $x_num -eq 0 -and ($x_num, -$x_num) -contains $num) {  # 左の行で縦方向チェックの場合（四隅を除く）
+
+              while ($n -ge 0 -and $n -le $y_num*$x_num-$x_num) {
+                $n_list.Add($n)
+                $n = $n + $num
+              }
+
+            } elseif ($this.index % $x_num -eq 7 -and ($x_num, -$x_num) -contains $num) {  # 右の行で縦方向チェックの場合（四隅を除く）
+
+              while ($n -ge $x_num-1 -and $n -le $y_num*$x_num-1) {
+                $n_list.Add($n)
+                $n = $n + $num
+              }
+
+            } else {  # 自身が壁にいることを考慮せずとも問題ない方向の場合
+              while ($n -ge 0 -and $n -le $x_num*$y_num) {
+                $n_list.Add($n)
+
+                if ($btn_list[$n].doesNotHaveNext) {
+                  break
+
+                } else {
+                  $n = $n + $num
+                }
+              }
+            }
+
+          } else {  # 自分自身は壁ではない場合
+            while ($n -ge 0 -and $n -le $x_num*$y_num) {
+              $n_list.Add($n)
+
+              if ($btn_list[$n].doesNotHaveNext) {
+                break
+
+              } else {
+                $n = $n + $num
+              }
+            }
+          }
+
+          if ($n_list.Length -gt 0 -and $btn_list[$n_list[0]].BackColor -eq $your_color) {  # もし隣接するマスが相手の色なら
+          
+            $done = $false
+            $l = New-Object System.Collections.ArrayList
+            $doesContinue = $true
+            $n_list | % {
+
+              if ($doesContinue -and ($my_color, $your_color) -contains $btn_list[$_].BackColor) {  # 相手か自分の色が連続する限り
+                $l.Add($_)
+
+              } else {  # 途中でまだなにも置かれていないマスがあれば
+                $doesContinue = $false
+              }
+              
+              if ($doesContinue -and (-not $done) -and $btn_list[$_].BackColor -eq $my_color) {
+                return $true
+              }
+            }
+          }
+        }
+
+        # 色を塗るかどうかの判定
         if ($this.BackColor -eq [System.Drawing.Color]::teal) {  # 初期状態：敵の色を挟めたら塗れる
           
           $this | Add-Member -Force -NotePropertyName done -NotePropertyValue $false
@@ -292,7 +499,6 @@ function create($y_num, $x_num) {
               }
             }
           }
-          
 
           # 上：-$x_num
           # 下：+$x_num
