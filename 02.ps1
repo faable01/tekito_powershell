@@ -26,7 +26,7 @@ function create($y_num, $x_num) {
   $write = { param($msg) 
     Write-Host $msg
     $t.Focus()
-    $t.AppendText("`n$($msg)")
+    $t.AppendText("`n$($msg)")  # AppendText()はTextBox内の末尾に文字列を追加するだけではなく、「末尾までスクロールする」効果もあるっぽい
   }
 
   # ボタン数カウント
@@ -60,9 +60,11 @@ function create($y_num, $x_num) {
         $btn | Add-Member -NotePropertyName doesNotHaveNext -NotePropertyValue $true
       }
 
+      # -------- AddClickここから --------
       # クリックイベントハンドラの設定 ※スクリプトブロック内は外部と別スコープ。外から内に持ってくることはできるが、内から外に影響を及ぼせるのはオブジェクトのプロパティだけ（という気がする）
       $btn.Add_Click({
 
+        # 先行・後攻の判定と、対応する自分の色の設定（黒色：先行, 白色：後攻）
         if ($frm.turn % 2 -ne 0) {  # 先行
           $my_color = [System.Drawing.Color]::SlateGray
           $your_color = [System.Drawing.Color]::MintCream
@@ -73,13 +75,14 @@ function create($y_num, $x_num) {
         
         }
 
-        # $thisで自分自身（ボタン）を、$_でイベントを発生させた主体（マウスなど）を取得できる
-        if ($my_color -eq [System.Drawing.Color]::SlateGray) {
-          & $write "$($frm.turn)ターン目_黒がクリックしたインデックス：$($this.index)"
-
-        } else {
-          & $write "$($frm.turn)ターン目_白がクリックしたインデックス：$($this.index)"
-        }
+        ## 【デバッグ用】 クリック時にボタンごとに設定されている独自プロパティ「index」の値を出力する
+        ## （$thisで自分自身（ボタン）を、$_でイベントを発生させた主体（マウスなど）を取得できる）
+        #if ($my_color -eq [System.Drawing.Color]::SlateGray) {
+        #  & $write "$($frm.turn)ターン目_黒がクリックしたインデックス：$($this.index)"
+        #
+        #} else {
+        #  & $write "$($frm.turn)ターン目_白がクリックしたインデックス：$($this.index)"
+        #}
 
         if ($this.BackColor -eq [System.Drawing.Color]::teal) {  # 初期状態：敵の色を挟めたら塗れる
           
@@ -338,6 +341,7 @@ function create($y_num, $x_num) {
           }
         }
       })
+      # -------- AddClickここまで --------
 
       $frm.Controls.Add($btn)
       $null = $btn_list.Add($btn)
