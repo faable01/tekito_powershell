@@ -6,7 +6,32 @@
 # [usage] Create-List-Of-Pcl 3 (2, 1, 2) => PCL-1-1, PCL-1-2, PCL-2-1, PCL-3-1, PCL-3-2
 function Create-List-Of-Pcl($maxpcl, $listOfLength) { $result = New-Object System.Collections.ArrayList; 1..$maxpcl | % { $__ = $_; $max = $listOfLength[$_-1]; 1..$max | % { $name = "PCL-$($__)-$($_)"; $null = $result.Add($name);}  }; return $result }
 
+function grep([string]$str) {
+  <#
+    .SYNOPSIS
+    配下ディレクトリに対してざっくりとしたgrep検索をします
+    .DESCRIPTION
+    再帰的に配下ディレクトリのファイルの中身を正規表現で検索し、ヒットしたファイルのパスと行数を表示します
+    結果はオブジェクトとして返却しているので、各種プロパティを参照することもできる
+    .PARAMETER str
+    grep検索する正規表現
+  #>
+  Get-ChildItem -Recurse -File | ? {
+    (Get-Content $_.FullName) -match $str
 
+  } | % {
+    $__=$_
+    $__ | Add-Member -NotePropertyName "hit_lines" -NotePropertyValue (New-Object System.Collections.ArrayList)
+    $line=0
+    (Get-Content $__.FullName) | % {
+      $line++
+      if ((New-Object regex($str)).IsMatch($_)) {
+        $__.hit_lines.Add($line)
+      }
+    }
+    $__ | Format-Table -Property "FullName", "hit_lines"
+  }
+}
 
 
 # _______________________________
