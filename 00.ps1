@@ -20,9 +20,9 @@ function grep([string]$str) {
     (Get-Content $_.FullName) -match $str
 
   } | % {
-    $__=$_
+    $__ = $_
     $__ | Add-Member -NotePropertyName "hit_lines" -NotePropertyValue (New-Object System.Collections.ArrayList)
-    $line=0
+    $line = 0
     (Get-Content $__.FullName) | % {
       $line++
       if ((New-Object regex($str)).IsMatch($_)) {
@@ -50,6 +50,15 @@ $env:Path = $env:Path + "C:\pleiades\java\8\bin;"
 
 # 一時的に環境変数JAVA_HOME設定
 $env:JAVA_HOME = "C:\pleiades\java\8"
+
+# 現在のディレクトリ配下のファイルをすべてproselfにアップロードする（浅い階層のみ）
+function Upload-Proself($username, $password, $proself_server_url) {
+  $securepass = ConvertTo-SecureString $password -AsPlainText -Force
+  $credential = New-Object -TypeName System.Management.Automation.PSCredentialTypes -ArgumentList $username, $securepass
+  Get-ChildItem -File | % {
+    Invoke-WebRequest -Method 'PUT' -Credential $credential -Uri "$proself_server_url/$username/$($_.Name)" -InFile $_.FullName
+  }
+}
 
 
 # _________________________________
