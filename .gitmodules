@@ -1,0 +1,3 @@
+[submodule "mdwiki/Polaris"]
+	path = mdwiki/Polaris
+	url = https://github.com/faable01/Polaris
