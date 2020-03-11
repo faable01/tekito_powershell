@@ -27,6 +27,9 @@ New-PolarisPostRoute -Path /api -Scriptblock {
   $item = New-Item -ItemType File "S://page/$($Request.Body.title).md"
   if ($item) {
     Set-Content -Path $item.FullName -Value $Request.Body.content -Encoding UTF8
+    $Response.Send("新規作成しました：$($item.FullName)")
+  } else {
+    $Response.Send("")
   }
 } -Force
 
@@ -34,7 +37,9 @@ New-PolarisPostRoute -Path /api -Scriptblock {
 New-PolarisGetRoute -Path /api -Scriptblock {
   $item = Get-Item "S://page/$($Request.Query['title']).md"
   if ($item) {
-    $Response.Send((Get-Content $item.FullName -Encoding UTF8))
+    $Response.Send((Get-Content $item.FullName -Encoding UTF8) -join "`n")
+  } else {
+    $Response.Send("")
   }
 } -Force
 
@@ -43,6 +48,9 @@ New-PolarisPutRoute -Path /api -Scriptblock {
   $item = Get-Item "S://page/$($Request.Body.title).md"
   if ($item) {
     Set-Content -Path $item.FullName -Value $Request.Body.content -Encoding UTF8
+    $Response.Send("更新しました：$($item.FullName)")
+  } else {
+    $Response.Send("")
   }
 } -Force
 
@@ -51,6 +59,9 @@ New-PolarisDeleteRoute -Path /api -Scriptblock {
   $item = Get-Item "S://page/$($Request.Body.title).md"
   if ($item) {
     Remove-Item $item.FullName
+    $Response.Send("削除しました：$($item.FullName)")
+  } else {
+    $Response.Send("")
   }
 } -Force
 
