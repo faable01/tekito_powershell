@@ -65,6 +65,28 @@ New-PolarisDeleteRoute -Path /api -Scriptblock {
   }
 } -Force
 
+# index.md参照（必須ファイルなので参照と更新のみ. 削除と作成のメソッドは不要）
+New-PolarisGetRoute -Path /api/index -Scriptblock {
+  $item = Get-Item "S://index.md"
+  if ($item) {
+    $Response.Send((Get-Content $item.FullName -Encoding UTF8) -join "`n")
+  } else {
+    $Response.Send("")
+  }
+} -Force
+
+# index.md更新（必須ファイルなので参照と更新のみ. 削除と作成のメソッドは不要）
+New-PolarisPutRoute -Path /api/index -Scriptblock {
+  $item = Get-Item "S://index.md"
+  if ($item) {
+    Set-Content -Path $item.FullName -Value $Request.Body.content -Encoding UTF8
+    $Response.Send("更新しました：$($item.FullName)")
+  } else {
+    $Response.Send("")
+  }
+} -Force
+
+
 # wiki起動
 $app = Start-Polaris -Port 8099 -MinRunspaces 2 -MaxRunspaces 10 -Verbose
 
