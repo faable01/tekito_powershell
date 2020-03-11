@@ -1,8 +1,9 @@
 ﻿
-Import-Module Polaris
 New-PSDrive 'S' -PSProvider FileSystem -Root 'C:\Users\atno1\Desktop\powershell\tekito_powershell\mdwiki'
+Import-Module S://Polaris/Polaris.psd1
 
-Stop-Polaris; Clear-Polaris;
+# リクエストのBodyをJSONとして解釈するよう設定
+Use-PolarisJsonBodyParserMiddleware
 
 # http://localhost:8099/page/ にpageディレクトリ配下のアイテムを展開
 New-PolarisStaticRoute -FolderPath S://page -RoutePath /page -EnableDirectoryBrowser $True -Force
@@ -21,5 +22,40 @@ New-PolarisGetRoute -Path /wiki -Scriptblock {
   $Response.send($t)  
 } -Force
 
+# ファイル作成
+New-PolarisPostRoute -Path /api -Scriptblock {
+  $item = New-Item -ItemType File "S://page/$($Request.Body.title).md"
+  if ($item) {
+    Set-Content -Path $item.FullName -Value $Request.Body.content -Encoding UTF8
+  }
+} -Force
+
+# ファイル参照
+New-PolarisGetRoute -Path /api -Scriptblock {
+  $item = Get-Item "S://page/$($Request.Query['title']).md"
+  if ($item) {
+    $Response.Send((Get-Content $item.FullName -Encoding UTF8))
+  }
+} -Force
+
+# ファイル更新
+New-PolarisPutRoute -Path /api -Scriptblock {
+  $item = Get-Item "S://page/$($Request.Body.title).md"
+  if ($item) {
+    Set-Content -Path $item.FullName -Value $Request.Body.content -Encoding UTF8
+  }
+} -Force
+
+# ファイル削除
+New-PolarisDeleteRoute -Path /api -Scriptblock {
+  $item = Get-Item "S://page/$($Request.Body.title).md"
+  if ($item) {
+    Remove-Item $item.FullName
+  }
+} -Force
+
 # wiki起動
 $app = Start-Polaris -Port 8099 -MinRunspaces 2 -MaxRunspaces 10 -Verbose
+
+# ブラウザ起動
+start http://localhost:8099/wiki
